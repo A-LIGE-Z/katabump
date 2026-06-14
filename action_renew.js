@@ -217,12 +217,23 @@ function getUsers() {
     // GitHub Actions Secret: USERS_JSON = [{"username":..., "password":...}]
     try {
         if (process.env.USERS_JSON) {
-            const parsed = JSON.parse(process.env.USERS_JSON);
+            const parsed = JSON.parse(process.env.USERS_JSON.replace(/^\uFEFF/, ''));
             return Array.isArray(parsed) ? parsed : (parsed.users || []);
         }
     } catch (e) {
         console.error('解析 USERS_JSON 环境变量错误:', e);
     }
+
+    try {
+        const loginPath = path.join(process.cwd(), 'login.json');
+        if (fs.existsSync(loginPath)) {
+            const parsed = JSON.parse(fs.readFileSync(loginPath, 'utf8').replace(/^\uFEFF/, ''));
+            return Array.isArray(parsed) ? parsed : (parsed.users || []);
+        }
+    } catch (e) {
+        console.error('解析 login.json 错误:', e);
+    }
+
     return [];
 }
 
@@ -404,6 +415,9 @@ async function attemptTurnstileCdp(page) {
                     const errorMsg = page.getByText('Incorrect password or no account');
                     if (await errorMsg.isVisible({ timeout: 3000 })) {
                         console.error(`   >> ❌ 登录失败: 用户 ${user.username} 账号或密码错误`);
+                        const photoDir = path.join(process.cwd(), 'screenshots');
+                        if (!fs.existsSync(photoDir)) fs.mkdirSync(photoDir, { recursive: true });
+                        const safeUsername = user.username.replace(/[^a-z0-9]/gi, '_');
                         const failShotPath = path.join(photoDir, `${safeUsername}.png`);
                         try { await page.screenshot({ path: failShotPath, fullPage: true }); } catch (e) { }
 

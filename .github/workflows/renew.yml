@@ -20,10 +20,11 @@ jobs:
         
     - name: Install Dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb
-        npm install
-        npx playwright install-deps chrome
+        npm ci
+        npx playwright install --with-deps chrome
+
+    - name: Validate Script
+      run: npm run check
       
     - name: Run Renew Script
       env:

@@ -194,7 +194,7 @@ async function launchNativeChrome() {
 // 从 login.json 读取用户列表
 function getUsers() {
     try {
-        const data = fs.readFileSync(path.join(__dirname, 'login.json'), 'utf8');
+        const data = fs.readFileSync(path.join(__dirname, 'login.json'), 'utf8').replace(/^\uFEFF/, '');
         const json = JSON.parse(data);
         return Array.isArray(json) ? json : (json.users || []);
     } catch (e) {
